@@ -344,7 +344,7 @@ function renderPurchasingListHTML(){
       <p class="addr">${esc(d.address)}</p>
       <p class="sub">${p.agreedPrice?`Agreed ${money(num(p.agreedPrice))}`:'No agreed price yet'}${p.targetCompletion?` · target ${fmtDate(p.targetCompletion)}`:''}</p>
       <div class="prog"><span style="width:${pct}%"></span></div>
-      <p class="sub" style="margin:4px 0 0">${done}/${PURCHASE_CHECKLIST.length} conveyancing steps · mortgage: ${p.mortgageStatus}</p>
+      <p class="sub" style="margin:4px 0 0">${done}/${PURCHASE_CHECKLIST.length} conveyancing steps${(()=>{ const t=p.finance.reduce((a,x)=>a+num(x.amount),0); return t>0?` · finance raised: ${money(t)}`:""; })()}</p>
     </div>`;
   }).join("");
   return `<div class="grid">${cards}</div>`;
