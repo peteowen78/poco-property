@@ -258,6 +258,9 @@
   /* ---------- generic list rows ---------- */
   .crow{display:grid;grid-template-columns:1fr 120px 130px 96px 34px;gap:8px;align-items:center;margin-bottom:8px}
   .crow input{border:1px solid var(--line);border-radius:9px;padding:9px 10px;font-size:13px;font-weight:600;font-family:inherit;width:100%;background:var(--paper)}
+  .frow{display:grid;grid-template-columns:1fr 110px 90px 125px 125px 100px 34px;gap:8px;align-items:center;margin-bottom:8px}
+  .frow input{border:1px solid var(--line);border-radius:9px;padding:9px 10px;font-size:13px;font-weight:600;font-family:inherit;width:100%;background:var(--paper)}
+  .frow .interest{font-size:13px;font-weight:700;color:var(--ink2);text-align:right;padding-right:4px}
   .snag-row{display:flex;align-items:center;gap:11px;padding:7px 0}
   .snag-row input.t{flex:1;border:1px solid var(--line);border-radius:9px;padding:9px 10px;font-size:14px;font-weight:600;background:var(--paper)}
   .bigfig{display:flex;gap:20px;flex-wrap:wrap;margin:4px 0 2px}
@@ -295,6 +298,7 @@
     .pstats{grid-template-columns:1fr 1fr}
     .mrow{grid-template-columns:1fr 1fr}
     .crow{grid-template-columns:1fr 1fr}
+    .frow{grid-template-columns:1fr 1fr}
     .phasenav button{min-width:108px;font-size:13px;padding:11px 8px}
     .ccard .cgrid{grid-template-columns:1fr 1fr}
     .ccard .cgrid2{grid-template-columns:1fr}
