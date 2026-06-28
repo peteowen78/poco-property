@@ -969,6 +969,23 @@ function renderManage(d){
   const schemes=["","DPS","MyDeposits","TDS","Other"];
   wrap.innerHTML=`
     <div class="panel">
+      <h3>Mortgage</h3>
+      <p class="hint">Record the real mortgage on this property — whether it's the refinance after a cash purchase, or one that was already in place.</p>
+      <div class="row2">
+        <div class="field"><label>Status</label><select id="mo_status">${MORTGAGE_STATES.map(s=>`<option ${s===m.mortgage.status?"selected":""}>${s}</option>`).join("")}</select></div>
+        <div class="field"><label>Lender</label><input id="mo_lender" value="${esc(m.mortgage.lender)}"></div>
+        <div class="field"><label>Broker</label><input id="mo_broker" value="${esc(m.mortgage.broker)}"></div>
+        <div class="field"><label>Type</label><select id="mo_type">${["Interest-only","Repayment"].map(s=>`<option ${s===m.mortgage.type?"selected":""}>${s}</option>`).join("")}</select></div>
+        <div class="field"><label>Mortgage amount</label><div class="prefix"><span>£</span><input inputmode="decimal" id="mo_amount" value="${esc(m.mortgage.amount)}"></div></div>
+        <div class="field"><label>Monthly payment</label><div class="prefix"><span>£</span><input inputmode="decimal" id="mo_payment" value="${esc(m.mortgage.monthlyPayment)}"></div></div>
+        <div class="field"><label>Interest rate</label><div class="prefix"><input inputmode="decimal" id="mo_rate" value="${esc(m.mortgage.rate)}" style="padding-left:12px;padding-right:24px"><span style="left:auto;right:12px">%</span></div></div>
+        <div class="field"><label>Term (years)</label><input inputmode="decimal" id="mo_term" value="${esc(m.mortgage.termYears)}"></div>
+        <div class="field"><label>Start date</label><input type="date" id="mo_start" value="${esc(m.mortgage.startDate)}"></div>
+        <div class="field"><label>Product/fix ends</label><input type="date" id="mo_pend" value="${esc(m.mortgage.productEndDate)}"></div>
+        <div class="field"><label>Notes</label><input id="mo_notes" value="${esc(m.mortgage.notes)}"></div>
+      </div>
+    </div>
+    <div class="panel">
       <h3>Tenancy</h3>
       <div class="seg" id="tstatus" style="margin-bottom:16px">
         <button class="${m.status!=='let'?'on':''}" data-st="vacant">Vacant</button>
@@ -1002,6 +1019,13 @@ function renderManage(d){
   lb("#m_tenant",v=>m.tenant=v); lb("#m_contact",v=>m.contact=v); lb("#m_rent",v=>m.rent=v); lb("#m_deposit",v=>m.deposit=v);
   lb("#m_start",v=>m.start=v); lb("#m_end",v=>m.end=v);
   wrap.querySelector("#m_scheme").onchange=e=>{ m.scheme=e.target.value; saveData(); };
+  lb("#mo_lender",v=>m.mortgage.lender=v); lb("#mo_broker",v=>m.mortgage.broker=v);
+  lb("#mo_amount",v=>m.mortgage.amount=v); lb("#mo_payment",v=>m.mortgage.monthlyPayment=v); lb("#mo_rate",v=>m.mortgage.rate=v);
+  lb("#mo_term",v=>m.mortgage.termYears=v); lb("#mo_notes",v=>m.mortgage.notes=v);
+  wrap.querySelector("#mo_status").onchange=e=>{ m.mortgage.status=e.target.value; saveData(); };
+  wrap.querySelector("#mo_type").onchange=e=>{ m.mortgage.type=e.target.value; saveData(); };
+  wrap.querySelector("#mo_start").addEventListener("change",e=>{ m.mortgage.startDate=e.target.value; saveData(); });
+  wrap.querySelector("#mo_pend").addEventListener("change",e=>{ m.mortgage.productEndDate=e.target.value; saveData(); });
   // certs: changing a date re-renders to refresh the status flag
   wrap.querySelectorAll("input[data-cert]").forEach(inp=>inp.addEventListener("change",()=>{ m.certs[inp.dataset.cert]=inp.value; saveData(); renderManage(d); }));
   // maintenance rows (no re-render on edit, to keep focus; total updates live on cost)
