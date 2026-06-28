@@ -459,8 +459,8 @@ function renderPortfolioHTML(){
     return `<div class="empty"><h1 class="page" style="font-size:22px">Nothing owned yet</h1>
       <p>Move a property to the <b>Owned</b> phase — from the phase menu at the top of its page — and it'll appear here with its rent, cashflow, equity and compliance dates.</p></div>`;
   }
-  let totRent=0, totAnnual=0, totEquity=0;
-  owned.forEach(d=>{ const c=computeDeal(d), m=d.manage||{}; totRent+=(num(m.rent)||c.rent); totAnnual+=c.annual;
+  let totRent=0, totAnnual=0, totEquity=0, totCashflow=0;
+  owned.forEach(d=>{ const c=computeDeal(d), m=d.manage||{}; totRent+=(num(m.rent)||c.rent); totAnnual+=c.annual; totCashflow+=c.cashflow;
     const realMortgage=m.mortgage&&num(m.mortgage.amount)>0?num(m.mortgage.amount):c.mortgage;
     totEquity+=(num(d.deal.duv)-realMortgage); });
   const corp=num(DATA.assumptions.corpTaxPct);
@@ -489,6 +489,7 @@ function renderPortfolioHTML(){
     <div class="pstats">
       <div class="pstat"><div class="k">Properties owned</div><div class="v">${owned.length}</div></div>
       <div class="pstat"><div class="k">Monthly rent</div><div class="v">${money(totRent)}</div></div>
+      <div class="pstat"><div class="k">Monthly cashflow</div><div class="v" style="${totCashflow<0?'color:var(--bad)':''}">${money(totCashflow)}</div></div>
       <div class="pstat"><div class="k">Annual cashflow</div><div class="v" style="${totAnnual<0?'color:var(--bad)':''}">${money(totAnnual)}</div></div>
       <div class="pstat"><div class="k">Est. equity</div><div class="v">${money(totEquity)}</div></div>
     </div>
