@@ -46,7 +46,7 @@ A new panel titled "Mortgage" in `renderManage()`, rendered first (above the exi
 - **Term (years)** — numeric input.
 - **Type** — select, `["Interest-only","Repayment"]`.
 - **Start date**, **Product/fix ends** — date inputs.
-- **Notes** — a free-text field (textarea, or a plain text input if the codebase has no existing textarea pattern to follow — check before adding a new input style).
+- **Notes** — a plain text `<input>`, matching every other free-text field in this panel and the rest of the codebase (`app.js` has no `<textarea>` anywhere — don't introduce one for this one field).
 
 Wire up live-binding the same way the Tenancy fields do directly below (`lb(...)` calls and a `select.onchange` handler), calling `saveData()` on every change. The status select should follow the same `onchange → saveData()` pattern as the Purchasing-phase status select at `app.js:861`.
 
@@ -56,9 +56,11 @@ In `renderPortfolioHTML()` (`app.js:434`), equity is currently computed as `DUV 
 - The aggregate `totEquity` accumulator (`app.js:448`)
 - The per-property table row's equity cell (`app.js:461`)
 
-Both call sites change to: if the property's `manage.mortgage.amount` is set (non-empty, parses to a number), use that real amount in place of `c.mortgage` for that property's equity; otherwise keep using `c.mortgage` as today. This needs a small helper (e.g. `const realMortgage = m.mortgage && num(m.mortgage.amount) ? num(m.mortgage.amount) : null;`) computed once per owned property and reused at both call sites, since the same per-property equity figure is needed for the row and folded into the total.
+Both call sites change to: if the property's `manage.mortgage.amount` is set and non-zero, use that real amount in place of `c.mortgage` for that property's equity; otherwise keep using `c.mortgage` as today. Note `num()` (`app.js:227`) already returns `0` for a blank/unparseable string, so the check is simply `num(m.mortgage.amount) > 0` — a mortgage genuinely paid off to exactly £0 is the one edge case this can't distinguish from "not entered yet," and will fall back to the theoretical figure. That's an acceptable simplification (a fully paid-off mortgage is rare for these deals and the owners can use a `notes` entry to flag it) — don't build special-casing for it.
 
-The hint text under the Portfolio table (`app.js:484`, "Est. equity is a rough figure...") should be updated to note that properties with a recorded real mortgage use that figure instead of the assumed one.
+The `owned.forEach` accumulator (`app.js:448`) and the `owned.map` row-builder (`app.js:452` onward, equity cell at `app.js:461`) are two separate callbacks, each with their own local `m=d.manage||{}` binding — they are not the same closure. The real-mortgage check must be computed independently inside *each* callback (same one-line expression in both places, not a single value shared across them).
+
+The hint text under the Portfolio table (`app.js:488`, "Est. equity is a rough figure...") should be updated to note that properties with a recorded real mortgage use that figure instead of the assumed one.
 
 ## Risks / edge cases
 
