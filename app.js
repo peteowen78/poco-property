@@ -992,7 +992,7 @@ function renderRefurbishing(d){
 
 /* ============================================================ MANAGE TAB */
 function renderManage(d){
-  const m=ensureManage(d);
+  const m=ensureManage(d), c=computeDeal(d);
   const wrap=document.getElementById("tabwrap");
   const certRows=CERTS.map(([key,name,freq])=>{
     const st=certStatus(m.certs[key]);
@@ -1039,6 +1039,7 @@ function renderManage(d){
         <div class="field"><label>Tenant name</label><input id="m_tenant" value="${esc(m.tenant)}"></div>
         <div class="field"><label>Contact</label><input id="m_contact" value="${esc(m.contact)}" placeholder="phone / email"></div>
         <div class="field"><label>Rent (PCM)</label><div class="prefix"><span>£</span><input inputmode="decimal" id="m_rent" value="${esc(m.rent)}" placeholder="${esc(d.deal.rent||'')}"></div></div>
+        <div class="field"><label>Monthly cashflow</label><div style="border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-size:15px;font-weight:600;background:var(--surface);${c.cashflow<0?'color:var(--bad)':''}">${money(c.cashflow)}</div></div>
         <div class="field"><label>Deposit</label><div class="prefix"><span>£</span><input inputmode="decimal" id="m_deposit" value="${esc(m.deposit)}"></div></div>
         <div class="field"><label>Tenancy start</label><input type="date" id="m_start" value="${esc(m.start)}"></div>
         <div class="field"><label>Tenancy end</label><input type="date" id="m_end" value="${esc(m.end)}"></div>
