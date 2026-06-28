@@ -339,12 +339,13 @@ function renderPurchasingListHTML(){
   if(!deals.length) return innerEmpty("Nothing being purchased right now. Open a property and switch its phase to Purchasing once an offer's agreed.");
   const cards=deals.map(d=>{ const p=ensurePurchase(d);
     const done=PURCHASE_CHECKLIST.filter(([k])=>p.checklist[k]).length, pct=Math.round(done/PURCHASE_CHECKLIST.length*100);
+    const financeTotal=p.finance.reduce((a,x)=>a+num(x.amount),0);
     return `<div class="card" data-open="${d.id}">
       <span class="chip">${p.checklist.completed?'Completed':p.checklist.exchanged?'Exchanged':'In conveyancing'}</span>
       <p class="addr">${esc(d.address)}</p>
       <p class="sub">${p.agreedPrice?`Agreed ${money(num(p.agreedPrice))}`:'No agreed price yet'}${p.targetCompletion?` · target ${fmtDate(p.targetCompletion)}`:''}</p>
       <div class="prog"><span style="width:${pct}%"></span></div>
-      <p class="sub" style="margin:4px 0 0">${done}/${PURCHASE_CHECKLIST.length} conveyancing steps${(()=>{ const t=p.finance.reduce((a,x)=>a+num(x.amount),0); return t>0?` · finance raised: ${money(t)}`:""; })()}</p>
+      <p class="sub" style="margin:4px 0 0">${done}/${PURCHASE_CHECKLIST.length} conveyancing steps${financeTotal>0?` · finance raised: ${money(financeTotal)}`:""}</p>
     </div>`;
   }).join("");
   return `<div class="grid">${cards}</div>`;
