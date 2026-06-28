@@ -98,8 +98,8 @@ function ensurePhase(d){
 function ensurePurchase(d){
   if(!d.purchase) d.purchase={};
   const p=d.purchase;
-  ["agreedPrice","solicitor","solicitorRef","lender","targetExchange","targetCompletion"].forEach(k=>{ if(p[k]==null) p[k]=""; });
-  if(p.mortgageStatus==null) p.mortgageStatus="Not started";
+  ["agreedPrice","solicitor","solicitorRef","targetExchange","targetCompletion"].forEach(k=>{ if(p[k]==null) p[k]=""; });
+  if(!Array.isArray(p.finance)) p.finance=[];
   if(!p.checklist) p.checklist={};
   PURCHASE_CHECKLIST.forEach(([k])=>{ if(p.checklist[k]==null) p.checklist[k]=false; });
   return p;
@@ -224,7 +224,7 @@ function newDeal(addr,pc){
   return { id:uid(), address:addr||"New property", postcode:pc||"", beds:"", price:"", source:"", stage:"Lead", phase:"analysis", notes:"",
            refurb:{ included:{}, qty:{}, rates:{}, contingencyPct:15, pmFee:1000 },
            deal:{ duv:"", rent:"", yourOffer:"", hmoCosts:"", refurbOverride:"", comparables:[] },
-           purchase:{ agreedPrice:"", solicitor:"", solicitorRef:"", lender:"", mortgageStatus:"Not started", targetExchange:"", targetCompletion:"", checklist:{instructed:false,searches:false,enquiries:false,offer:false,exchanged:false,completed:false} },
+           purchase:{ agreedPrice:"", solicitor:"", solicitorRef:"", finance:[], targetExchange:"", targetCompletion:"", checklist:{instructed:false,searches:false,enquiries:false,offer:false,exchanged:false,completed:false} },
            refurbish:{ start:"", end:"", percent:0, actuals:[], contractors:[], snags:[] },
            manage:{ status:"vacant", tenant:"", contact:"", rent:"", start:"", end:"", deposit:"", scheme:"", certs:{gas:"",eicr:"",epc:"",insurance:""}, maintenance:[],
                     mortgage:{ status:"Not started", lender:"", broker:"", amount:"", rate:"", termYears:"", type:"Interest-only", startDate:"", productEndDate:"", monthlyPayment:"", notes:"" } } };
