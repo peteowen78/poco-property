@@ -450,7 +450,9 @@ function renderPortfolioHTML(){
       <p>Move a property to the <b>Owned</b> phase — from the phase menu at the top of its page — and it'll appear here with its rent, cashflow, equity and compliance dates.</p></div>`;
   }
   let totRent=0, totAnnual=0, totEquity=0;
-  owned.forEach(d=>{ const c=computeDeal(d), m=d.manage||{}; totRent+=(num(m.rent)||c.rent); totAnnual+=c.annual; totEquity+=(num(d.deal.duv)-c.mortgage); });
+  owned.forEach(d=>{ const c=computeDeal(d), m=d.manage||{}; totRent+=(num(m.rent)||c.rent); totAnnual+=c.annual;
+    const realMortgage=m.mortgage&&num(m.mortgage.amount)>0?num(m.mortgage.amount):c.mortgage;
+    totEquity+=(num(d.deal.duv)-realMortgage); });
   const corp=num(DATA.assumptions.corpTaxPct);
   const afterTax=totAnnual>0?totAnnual*(1-corp/100):totAnnual;
 
@@ -458,12 +460,13 @@ function renderPortfolioHTML(){
     let next=null;
     if(m.certs) CERTS.forEach(([key,name])=>{ const st=certStatus(m.certs[key]); if(st.days!=null && (!next||st.days<next.st.days)) next={name,st}; });
     const rentV=num(m.rent)||c.rent;
+    const realMortgage=m.mortgage&&num(m.mortgage.amount)>0?num(m.mortgage.amount):c.mortgage;
     return `<tr class="click" data-open="${d.id}">
       <td>${esc(d.address)}</td>
       <td>${m.status==='let'?'Let':'Vacant'}</td>
       <td>${money(rentV)}</td>
       <td style="${c.cashflow<0?'color:var(--bad);':''}font-weight:800">${money(c.cashflow)}</td>
-      <td>${money(num(d.deal.duv)-c.mortgage)}</td>
+      <td>${money(num(d.deal.duv)-realMortgage)}</td>
       <td>${next?`<span class="cstat ${next.st.cls}">${next.name.split(' ')[0]} · ${next.st.label}</span>`:'—'}</td>
     </tr>`;
   }).join("");
@@ -490,7 +493,7 @@ function renderPortfolioHTML(){
         <tr><th>Property</th><th>Status</th><th>Rent</th><th>Cashflow/mo</th><th>Est. equity</th><th>Next due</th></tr>
         ${rows||`<tr><td colspan="6" style="color:var(--muted)">No completed properties yet.</td></tr>`}
       </table>
-      <p class="hint" style="margin-top:12px">Est. equity is a rough figure: post-refurb value minus the ${DATA.assumptions.ltvPct}% mortgage. After-tax is cashflow less corporation tax — a guide, not a tax calculation.</p>
+      <p class="hint" style="margin-top:12px">Est. equity is a rough figure: post-refurb value minus the ${DATA.assumptions.ltvPct}% mortgage — or the real mortgage amount, once you've entered one on a property's Owned tab. After-tax is cashflow less corporation tax — a guide, not a tax calculation.</p>
     </div>`;
 }
 
