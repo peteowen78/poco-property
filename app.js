@@ -72,6 +72,10 @@ function ensureManage(d){
   ["tenant","contact","rent","start","end","deposit","scheme"].forEach(k=>{ if(m[k]==null) m[k]=""; });
   if(!m.certs) m.certs={gas:"",eicr:"",epc:"",insurance:""};
   if(!Array.isArray(m.maintenance)) m.maintenance=[];
+  if(!m.mortgage) m.mortgage={};
+  if(m.mortgage.status==null) m.mortgage.status="Not started";
+  ["lender","broker","amount","rate","termYears","startDate","productEndDate","monthlyPayment","notes"].forEach(k=>{ if(m.mortgage[k]==null) m.mortgage[k]=""; });
+  if(m.mortgage.type==null) m.mortgage.type="Interest-only";
   return m;
 }
 
@@ -85,7 +89,7 @@ const SUGGESTED_ROLES={
 };
 const ANALYSIS_STAGES=["Lead","Viewing","Analysed","Offer made","Rejected"];
 const PURCHASE_CHECKLIST=[["instructed","Solicitor instructed"],["searches","Searches ordered"],["enquiries","Enquiries raised & answered"],["offer","Mortgage offer received"],["exchanged","Exchanged"],["completed","Completed"]];
-const MORTGAGE_STATES=["Not started","Applied","Valuation booked","Offer received"];
+const MORTGAGE_STATES=["Not started","Applied","Valuation booked","Offer received","Completed"];
 
 function ensurePhase(d){
   if(!d.phase) d.phase = d.stage==="Completed" ? "owned" : d.stage==="Agreed" ? "purchasing" : "analysis";
@@ -222,7 +226,8 @@ function newDeal(addr,pc){
            deal:{ duv:"", rent:"", yourOffer:"", hmoCosts:"", refurbOverride:"", comparables:[] },
            purchase:{ agreedPrice:"", solicitor:"", solicitorRef:"", lender:"", mortgageStatus:"Not started", targetExchange:"", targetCompletion:"", checklist:{instructed:false,searches:false,enquiries:false,offer:false,exchanged:false,completed:false} },
            refurbish:{ start:"", end:"", percent:0, actuals:[], contractors:[], snags:[] },
-           manage:{ status:"vacant", tenant:"", contact:"", rent:"", start:"", end:"", deposit:"", scheme:"", certs:{gas:"",eicr:"",epc:"",insurance:""}, maintenance:[] } };
+           manage:{ status:"vacant", tenant:"", contact:"", rent:"", start:"", end:"", deposit:"", scheme:"", certs:{gas:"",eicr:"",epc:"",insurance:""}, maintenance:[],
+                    mortgage:{ status:"Not started", lender:"", broker:"", amount:"", rate:"", termYears:"", type:"Interest-only", startDate:"", productEndDate:"", monthlyPayment:"", notes:"" } } };
 }
 const num = v => { if(typeof v==="string") v=v.replace(/[£,\s]/g,""); const n = parseFloat(v); return isFinite(n)?n:0; };
 const money = n => (n<0?"−£":"£") + Math.round(Math.abs(n)).toLocaleString("en-GB");
