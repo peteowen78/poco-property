@@ -125,7 +125,7 @@ function ensureRefurbish(d){
 
 /* ---------- state ---------- */
 let DATA = { deals:[], contacts:[], assumptions:{...DEFAULT_ASSUMPTIONS} };
-let view = "list", currentId = null, tab = "deal", homeMode = "list", section = "analysis", analysisSub = "numbers", sectionTab = "items";
+let view = "list", currentId = null, tab = "deal", homeMode = "list", section = "owned", analysisSub = "numbers", sectionTab = "items";
 let memoryOnly = false;
 const hasStore = (typeof window !== "undefined" && window.storage && typeof window.storage.get === "function");
 
