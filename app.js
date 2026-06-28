@@ -65,6 +65,15 @@ function certStatus(dateStr){
   if(dt<=60) return {label:"Due soon", cls:"warn", days:dt};
   return {label:"Valid", cls:"good", days:dt};
 }
+function loanInterest(amount,rate,dateLoaned,paybackDate){
+  const a=num(amount), r=num(rate);
+  if(!a || !r || !dateLoaned || !paybackDate) return null;
+  const d1=new Date(dateLoaned+"T00:00:00"), d2=new Date(paybackDate+"T00:00:00");
+  if(isNaN(d1) || isNaN(d2)) return null;
+  const days=(d2-d1)/86400000;
+  if(days<=0) return null;
+  return a*(r/100)*(days/365.25);
+}
 function ensureManage(d){
   if(!d.manage) d.manage={};
   const m=d.manage;
