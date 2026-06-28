@@ -35,7 +35,7 @@ Colour the figure the same way the existing "Annual cashflow" tile already does 
 
 ## Change 3: Per-property "Monthly cashflow" figure in the Owned tab
 
-In `renderManage(d)`, the Tenancy panel's `row2` grid currently has: Tenant name, Contact, Rent (PCM) [editable], Deposit, Tenancy start, Tenancy end, Deposit scheme. Add one more `.field` immediately after "Rent (PCM)", showing this property's own computed monthly cashflow as a read-only value (not an input — there's nothing to edit, it's derived) — formatted and colour-coded the same way as the Portfolio tile (red when negative). This requires `computeDeal(d)` to be called in `renderManage(d)` if it isn't already in scope there (check before assuming — `renderManage` currently only calls `ensureManage(d)`).
+In `renderManage(d)`, the Tenancy panel's `row2` grid currently has: Tenant name, Contact, Rent (PCM) [editable], Deposit, Tenancy start, Tenancy end, Deposit scheme. Add one more `.field` immediately after "Rent (PCM)", showing this property's own computed monthly cashflow as a read-only value (not an input — there's nothing to edit, it's derived) — formatted and colour-coded the same way as the Portfolio tile (red when negative). `renderManage(d)` currently only calls `ensureManage(d)`, not `computeDeal(d)` — `computeDeal(d)` must be newly called at the top of `renderManage(d)` to get this property's `cashflow` figure into scope.
 
 ## Risks / edge cases
 
