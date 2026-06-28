@@ -840,6 +840,19 @@ function renderPurchasing(d){
   const done=PURCHASE_CHECKLIST.filter(([k])=>p.checklist[k]).length;
   const pct=Math.round(done/PURCHASE_CHECKLIST.length*100);
   const chkRows=PURCHASE_CHECKLIST.map(([k,label])=>`<div class="chk-row ${p.checklist[k]?'on':''}" data-chk="${k}"><div class="check">${p.checklist[k]?'✓':''}</div><div class="lbl">${label}</div></div>`).join("");
+  const financeRows=p.finance.map((x,i)=>{
+    const interest=loanInterest(x.amount,x.rate,x.dateLoaned,x.paybackDate);
+    return `<div class="frow">
+      <input data-ff="name" data-i="${i}" value="${esc(x.name||"")}" placeholder="Name">
+      <div class="prefix"><span>£</span><input data-ff="amount" data-i="${i}" inputmode="decimal" value="${esc(x.amount||"")}" placeholder="Amount" style="padding-left:22px"></div>
+      <div class="prefix"><input data-ff="rate" data-i="${i}" inputmode="decimal" value="${esc(x.rate||"")}" placeholder="Rate" style="padding-left:10px;padding-right:22px"><span style="left:auto;right:10px">%</span></div>
+      <input type="date" data-ff="dateLoaned" data-i="${i}" value="${esc(x.dateLoaned||"")}">
+      <input type="date" data-ff="paybackDate" data-i="${i}" value="${esc(x.paybackDate||"")}">
+      <span class="interest">${interest==null?"—":money(interest)}</span>
+      <button class="comp-del" data-fdel="${i}" title="Remove">✕</button>
+    </div>`;
+  }).join("");
+  const financeTotal=p.finance.reduce((a,x)=>a+num(x.amount),0);
   wrap.innerHTML=`
     <div class="panel">
       <h3>Agreed price &amp; purchase costs</h3>
@@ -853,11 +866,11 @@ function renderPurchasing(d){
       <div class="bd total"><span class="k">Acquisition costs (excl. deposit &amp; refurb)</span><span class="v">${money(acqCosts)}</span></div>
     </div>
     <div class="panel">
-      <h3>Mortgage application</h3>
-      <div class="row2">
-        <div class="field"><label>Lender</label><input id="p_lender" value="${esc(p.lender)}"></div>
-        <div class="field"><label>Status</label><select id="p_mstatus">${MORTGAGE_STATES.map(s=>`<option ${s===p.mortgageStatus?"selected":""}>${s}</option>`).join("")}</select></div>
-      </div>
+      <h3>Finance raised</h3>
+      <p class="hint">Investors, friends or family, bridging loans — whatever funded this purchase. Total interest is calculated for you once an entry has an amount, rate, and both dates.</p>
+      ${financeRows||`<p class="hint" style="margin:0 0 10px">No finance sources added yet.</p>`}
+      <button class="btn ghost sm" id="addFin">+ Add finance</button>
+      <div class="comp-avg" id="finTotWrap" style="${financeTotal?'':'display:none'}"><span><b>Total raised:</b> <span id="finTot">${money(financeTotal)}</span></span></div>
     </div>
     <div class="panel">
       <h3>Key dates</h3>
@@ -873,11 +886,28 @@ function renderPurchasing(d){
       ${p.checklist.completed?`<div class="comp-avg" style="margin-top:12px"><span><b>Completed.</b> Ready to start the refurb?</span><button class="btn sm" id="toRefurbish">Move to Refurbishing →</button></div>`:""}
     </div>`;
   const lb=(id,setter)=>{ const e=wrap.querySelector(id); if(e) e.addEventListener("input",()=>{ setter(e.value); saveData(); }); };
-  lb("#p_price",v=>p.agreedPrice=v); lb("#p_sol",v=>p.solicitor=v); lb("#p_solref",v=>p.solicitorRef=v); lb("#p_lender",v=>p.lender=v);
+  lb("#p_price",v=>p.agreedPrice=v); lb("#p_sol",v=>p.solicitor=v); lb("#p_solref",v=>p.solicitorRef=v);
   wrap.querySelector("#p_price").addEventListener("blur",()=>renderPurchasing(d));   // refresh SDLT
-  wrap.querySelector("#p_mstatus").onchange=e=>{ p.mortgageStatus=e.target.value; saveData(); };
   wrap.querySelector("#p_tex").addEventListener("change",e=>{ p.targetExchange=e.target.value; saveData(); });
   wrap.querySelector("#p_tco").addEventListener("change",e=>{ p.targetCompletion=e.target.value; saveData(); });
+  // finance raised: update the row's interest figure and the running total live, without a full re-render (preserves focus while typing)
+  const updateFinRow=(i)=>{
+    const x=p.finance[i];
+    const interest=loanInterest(x.amount,x.rate,x.dateLoaned,x.paybackDate);
+    const inp=wrap.querySelector(`[data-ff][data-i="${i}"]`);
+    const row=inp?inp.closest(".frow"):null;
+    const span=row?row.querySelector(".interest"):null;
+    if(span) span.textContent=interest==null?"—":money(interest);
+    const total=p.finance.reduce((a,y)=>a+num(y.amount),0);
+    const ft=wrap.querySelector("#finTot"); if(ft) ft.textContent=money(total);
+    const ftw=wrap.querySelector("#finTotWrap"); if(ftw) ftw.style.display=total?"":"none";
+  };
+  wrap.querySelectorAll("[data-ff]").forEach(inp=>{
+    const i=+inp.dataset.i, f=inp.dataset.ff, ev=inp.type==="date"?"change":"input";
+    inp.addEventListener(ev,()=>{ p.finance[i][f]=inp.value; saveData(); updateFinRow(i); });
+  });
+  wrap.querySelectorAll("[data-fdel]").forEach(b=>b.onclick=()=>{ p.finance.splice(+b.dataset.fdel,1); saveData(); renderPurchasing(d); });
+  wrap.querySelector("#addFin").onclick=()=>{ p.finance.push({name:"",amount:"",rate:"",dateLoaned:"",paybackDate:""}); saveData(); renderPurchasing(d); };
   wrap.querySelectorAll("[data-chk]").forEach(r=>r.onclick=()=>{ p.checklist[r.dataset.chk]=!p.checklist[r.dataset.chk]; saveData(); renderPurchasing(d); });
   if(wrap.querySelector("#toRefurbish")) wrap.querySelector("#toRefurbish").onclick=()=>{ d.phase="refurbishing"; tab="refurbishing"; saveData(); renderProperty(); };
 }
