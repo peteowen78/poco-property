@@ -40,7 +40,7 @@ years = (paybackDate − dateLoaned) in days, divided by 365.25
 totalInterest = amount × (rate / 100) × years
 ```
 
-Displayed per row, formatted with the existing `money()` helper, only once `amount`, `rate`, `dateLoaned`, and `paybackDate` are all present and parse to valid numbers/dates (`dateLoaned` must parse to an earlier date than `paybackDate`, using the same date-parsing approach already used elsewhere in the file, e.g. `daysTo()`). If any input is missing, unparseable, or `paybackDate` isn't after `dateLoaned`, show a dash (`—`) instead of a figure — never show a negative, zero-by-coincidence, or `NaN` value.
+Displayed per row, formatted with the existing `money()` helper, only once `amount`, `rate`, `dateLoaned`, and `paybackDate` are all present and parse to valid dates. Note: the existing `daysTo(dateStr)` helper (`app.js:60`) is hardwired to compute days from *today* to a given date — it cannot compare two arbitrary historical dates, so it must NOT be reused here. Instead, parse both dates directly (`new Date(dateLoaned+"T00:00:00")`, `new Date(paybackDate+"T00:00:00")`, mirroring `daysTo()`'s own date-parsing style) and compute the day difference directly: `(paybackDateObj - dateLoanedObj) / 86400000`. If either date fails to parse (`isNaN`), or the day difference is zero or negative (payback not strictly after the loan date), or `amount`/`rate` don't parse to valid numbers, show a dash (`—`) instead of a figure — never show a negative, zero-by-coincidence, or `NaN` value.
 
 ## UI
 
