@@ -1192,6 +1192,159 @@ function renderSummary(d){
   };
 }
 
+/* ============================================================ LOAN AGREEMENT */
+function renderLoanAgreement(d, financeIndex){
+  if(!d){ go("list"); return; }
+  const p=ensurePurchase(d);
+  const x=p.finance[financeIndex];
+  if(!x){ go("property", d.id); return; }
+  const a=DATA.assumptions;
+  const interest=loanInterest(x.amount,x.rate,x.dateLoaned,x.paybackDate);
+  const todayISO=new Date().toISOString().slice(0,10);
+  const lenderLine=`${esc(x.name)} of ${esc(x.address)} (the 'Lender')`;
+  const borrowerLine=`${esc(a.companyName)} of ${esc(a.companyAddress)} ('the Borrower')`;
+  const guarantorLine=`${esc(a.directorNames)} of ${esc(a.companyAddress)} ('the Guarantor')`;
+  const loanAmt=money(num(x.amount));
+  const loanDate=fmtDate(x.dateLoaned);
+  const repayDate=fmtDate(x.paybackDate);
+  const dated=fmtDate(todayISO);
+  const rateTxt=`${esc(x.rate)}%`;
+  const interestTxt=interest==null?"—":money(interest);
+  app.innerHTML=`
+    <div class="toolbar no-print">
+      <button class="btn ghost sm" id="back">← Back</button>
+      <button class="btn sm" id="print">Print / Save as PDF</button>
+    </div>
+    <div class="sheet">
+      <h2 style="margin-top:60px">Loan agreement</h2>
+      <p class="sh-sub">Dated: ${dated}</p>
+
+      <div class="sh-section" style="page-break-before:always">
+        <h4>1. Definitions</h4>
+        <p>These are the definitions that apply to this agreement unless the context requires a different interpretation:</p>
+        <div class="bd"><span class="k">"Interest Payment"</span><span class="v">${rateTxt} GROSS (pro rata) on the principle amount (based on 12 month loan)</span></div>
+        <div class="bd"><span class="k">"Loan"</span><span class="v">means the sum of ${loanAmt} or such greater sum as shall in fact have been lent by the Lender to the Borrower at any time this agreement subsists. Where the context admits, it includes interest.</span></div>
+        <div class="bd"><span class="k">Loan Date</span><span class="v">${loanDate}</span></div>
+        <div class="bd"><span class="k">Repayment Date</span><span class="v">${repayDate}</span></div>
+        <p style="margin-top:16px">This agreement is dated: ${dated}</p>
+        <p>It is made between</p>
+        <p style="margin-left:20px">(1.) ${lenderLine}</p>
+        <p style="margin-left:20px">AND</p>
+        <p style="margin-left:20px">(2.) ${borrowerLine}</p>
+        <p style="margin-left:20px">(3.) AND</p>
+        <p style="margin-left:20px">${guarantorLine}</p>
+        <p style="margin-top:16px"><b>The terms of this Agreement are:</b></p>
+      </div>
+
+      <div class="sh-section">
+        <h4>2. Purpose of Loan and Security</h4>
+        <p>The Loan shall be used to:</p>
+        <p style="margin-left:20px">2.1. Fund property investment</p>
+        <p style="margin-left:20px">2.2. The Borrower will secure the loan with a Personal Guarantee from ${esc(a.directorNames)} of ${esc(a.companyAddress)}</p>
+      </div>
+
+      <div class="sh-section">
+        <h4>3. Sum of Loan and advances</h4>
+        <p style="margin-left:20px">3.1. The total sum offered by the Lender is ${loanAmt}.</p>
+        <p style="margin-left:20px">3.2. The Lender shall transfer the sum of ${loanAmt} to the Borrower's specified bank account to be cleared by the Loan Date.</p>
+      </div>
+
+      <div class="sh-section">
+        <h4>4. Repayment conditions</h4>
+        <p style="margin-left:20px">4.1. Subject to clause 4.2 the Loan shall be repaid in full no later than 12 months after the Loan Date unless otherwise agreed.</p>
+        <p style="margin-left:20px">4.2. In the event that at the Repayment Date both parties wish to continue, the Loan will continue at the agreed rate of ${rateTxt} per annum (pro rata) until the Loan is repaid in full subject always to the right of the Lender to demand repayment of the Loan in full on 60 days prior written notice once the Repayment Date has expired.</p>
+      </div>
+
+      <div class="sh-section">
+        <h4>5. Interest payable</h4>
+        <p>The Interest Payment shall be paid into the Lender's chosen bank account on the Repayment Date</p>
+      </div>
+
+      <div class="sh-section">
+        <h4>6. Early repayment of loan</h4>
+        <p>The Borrower will repay the Loan in full, along with all interest due, no sooner than 12 months from the Loan Date and no later than the Repayment Date (if different) unless otherwise agreed by both parties</p>
+      </div>
+
+      <div class="sh-section" style="page-break-before:always">
+        <h4>7. Method of payment</h4>
+        <p>All payments due to the Lender of both capital and interest shall be paid in pounds sterling by bank transfer into such account and bank within the United Kingdom.</p>
+      </div>
+
+      <div class="sh-section">
+        <h4>8. Default in payment of interest or repayment of capital</h4>
+        <p style="margin-left:20px">8.1. An "event of default" occurs when:</p>
+        <p style="margin-left:40px">8.1.1. the Borrower fails to pay in full and on the due date for payment any sum due; or</p>
+        <p style="margin-left:40px">8.1.2. any step is taken in connection with any voluntary arrangement or any other compromise or arrangement for the benefit of any creditors of ${esc(a.companyName)}; or</p>
+        <p style="margin-left:40px">8.1.3. a petition is presented for an order for the bankruptcy of ${esc(a.companyName)}</p>
+        <p style="margin-left:20px">8.2. Where an event of default has occurred the Lender may issue a notice of default. When the Lender does so, the whole amount of the Loan then outstanding and any unpaid interest immediately fall due for payment.</p>
+        <p style="margin-left:40px">8.2.1. In the event that no interest payments have yet been made, the Borrower will pay the Lender a minimum of 3 months interest OR the current accrued interest (whichever is higher).</p>
+        <p style="margin-left:40px">8.2.2. In the event that some interest payments have been made but amount to less than 3 months interest on the principle amount, the Borrower will pay the Lender an amount to bring total interest paid up to the equivalent of 3 months interest OR the current accrued interest (whichever is higher)</p>
+        <p style="margin-left:40px">8.2.3. In any other event, the Borrower will pay the Lender the remaining accrued interest on the principle amount.</p>
+      </div>
+
+      <div class="sh-section">
+        <h4>9. Borrower's warranties</h4>
+        <p>The Borrower represents and warrants:</p>
+        <p style="margin-left:20px">9.1. that the borrower is authorised to enter into this agreement;</p>
+        <p style="margin-left:20px">9.2. that the financial information submitted to the Lender fairly represents the financial state of the Borrower at the date of this agreement knowing that the Lender has relied on it in granting the Loan;</p>
+        <p style="margin-left:20px">9.3. that the Borrower has no undisclosed contingent obligations;</p>
+        <p style="margin-left:20px">9.4. that there are no material, unrealised or anticipated losses from any present commitment of the Borrower;</p>
+        <p style="margin-left:20px">9.5. that the Borrower will advise the Lender of material adverse changes which occur at any time prior to the date of final repayment of the Loan.</p>
+      </div>
+
+      <div class="sh-section" style="page-break-before:always">
+        <h4>10. Miscellaneous matters</h4>
+        <p style="margin-left:20px">10.1. No amendment or variation to this agreement is valid unless in writing, signed by each of the parties or by an authorised representative.</p>
+        <p style="margin-left:20px">10.2. So far as any time, date or period is mentioned in this agreement, time shall be of the essence.</p>
+        <p style="margin-left:20px">10.3. If any term or provision of this agreement is at any time held by any jurisdiction to be void, invalid or unenforceable, then it shall be treated as changed or reduced, only to the extent minimally necessary to bring it within the laws of that jurisdiction and to prevent it from being void and it shall be binding in that changed or reduced form. Subject to that, each provision shall be interpreted as severable and shall not in any way affect any other of these terms.</p>
+        <p style="margin-left:20px">10.4. The rights and obligations of the parties set out in this agreement shall pass to any permitted successor in title.</p>
+        <p style="margin-left:20px">10.5. If the Borrower is in breach of any term of this agreement, the Lender may:</p>
+        <p style="margin-left:40px">10.5.1. issue a claim in any court. All reasonable costs of the lender due to any breach are to be paid by the borrower</p>
+        <p style="margin-left:20px">10.6. No failure or delay by any party to exercise any right, power or remedy will operate as a waiver of it nor indicate any intention to reduce that or any other right in the future.</p>
+        <p style="margin-left:20px">10.7. Any communication to be served on either of the parties by the other shall be delivered by hand or sent by first class post or recorded delivery or by fax or by e-mail.</p>
+        <p style="margin-left:40px">It shall be deemed to have been delivered:</p>
+        <p style="margin-left:40px">if delivered by hand: on the day of delivery;</p>
+        <p style="margin-left:40px">if sent by post to the correct address: within 72 hours of posting;</p>
+        <p style="margin-left:40px">If sent by fax to the correct number: within 24 hours;</p>
+        <p style="margin-left:40px">If sent by e-mail to the address from which the receiving party has last sent e-mail: within 24 hours if no notice of non-receipt has been received by the sender.</p>
+        <p style="margin-left:20px">10.8. The validity, construction and performance of this agreement shall be governed by the laws of England and Wales and you agree that any dispute arising from it shall be litigated only in England and Wales.</p>
+      </div>
+
+      <div class="sh-section">
+        <h4>Loan Schedule</h4>
+        <div class="bd"><span class="k">Loan Amount</span><span class="v">${loanAmt}</span></div>
+        <div class="bd"><span class="k">Loan Date</span><span class="v">${loanDate}</span></div>
+        <div class="bd"><span class="k">Repayment Date</span><span class="v">${repayDate}</span></div>
+        <div class="bd"><span class="k">Interest rate</span><span class="v">${rateTxt} (based on 12 month loan)</span></div>
+        <div class="bd"><span class="k">Interest over full term (12 months)</span><span class="v">${interestTxt}</span></div>
+      </div>
+
+      <div class="sh-section">
+        <h4>Guarantee</h4>
+        <p>The Guarantor guarantees to the Lender that the Borrower shall comply with the provisions of this agreement and shall pay the Loan Sum, Interest and any other sums due in accordance with this agreement and in the event that the Borrower fails to pay the same on demand (including interest up to the actual date of payment), within 5 working days of any such demand.</p>
+        <p>The Guarantor shall indemnify the Lender for any and all reasonable costs arising out of the enforcement and/or preservation of this clause 12.</p>
+      </div>
+
+      <div class="sh-section" style="page-break-before:always">
+        <p><b>Signed as a deed on behalf of the Lender:</b></p>
+        <p style="margin-top:50px">.............................................................. ..............................................................</p>
+        <p><b>${lenderLine}</b></p>
+
+        <p style="margin-top:30px"><b>Signed as a deed on behalf of the Borrower:</b></p>
+        <p style="margin-top:50px">.............................................................. ..............................................................</p>
+        <p><b>${esc(a.directorNames)}, Director, ${esc(a.companyName)} of ${esc(a.companyAddress)} (the 'Lender')</b></p>
+
+        <p style="margin-top:30px"><b>Signed as a deed on behalf of the Guarantor:</b></p>
+        <p style="margin-top:50px">.............................................................. ..............................................................</p>
+        <p><b>${esc(a.directorNames)} of ${esc(a.companyAddress)}</b></p>
+      </div>
+
+      <p class="footnote" style="text-align:left;margin-top:22px">Generated ${dated} · POCO Property · This is a template loan agreement, not legal advice — review it yourself or with your solicitor before use.</p>
+    </div>`;
+  app.querySelector("#back").onclick=()=>go("property", d.id);
+  app.querySelector("#print").onclick=()=>window.print();
+}
+
 /* ---------- router ---------- */
 function render(){
   if(view==="list") renderList();
