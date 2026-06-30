@@ -52,7 +52,10 @@ const ITEM = {}; LIBRARY.forEach(c=>c.items.forEach(([id,nm,unit,rate])=>ITEM[id
 
 const DEFAULT_ASSUMPTIONS = {
   ltvPct:75, mortgageRate:5.5, stressRate:8, mgmtPct:10, moePct:15,
-  solicitor:1500, broker:1000, costOfMoney:2500, corpTaxPct:19
+  solicitor:1500, broker:1000, costOfMoney:2500, corpTaxPct:19,
+  companyName:"Poco Property Limited",
+  companyAddress:"2 Morris Park, Hartford, Northwich, Cheshire CW8 1SB",
+  directorNames:"Peter Owen & Caroline Owen"
 };
 const STAGES = ["Lead","Viewing","Analysed","Offer made","Agreed","Completed","Rejected"];
 // compliance certificates tracked on owned properties
@@ -109,6 +112,7 @@ function ensurePurchase(d){
   const p=d.purchase;
   ["agreedPrice","solicitor","solicitorRef","targetExchange","targetCompletion"].forEach(k=>{ if(p[k]==null) p[k]=""; });
   if(!Array.isArray(p.finance)) p.finance=[];
+  p.finance.forEach(x=>{ if(x.address==null) x.address=""; });
   if(!p.checklist) p.checklist={};
   PURCHASE_CHECKLIST.forEach(([k])=>{ if(p.checklist[k]==null) p.checklist[k]=false; });
   return p;
@@ -909,7 +913,7 @@ function renderPurchasing(d){
     inp.addEventListener(ev,()=>{ p.finance[i][f]=inp.value; saveData(); updateFinRow(i); });
   });
   wrap.querySelectorAll("[data-fdel]").forEach(b=>b.onclick=()=>{ p.finance.splice(+b.dataset.fdel,1); saveData(); renderPurchasing(d); });
-  wrap.querySelector("#addFin").onclick=()=>{ p.finance.push({name:"",amount:"",rate:"",dateLoaned:"",paybackDate:""}); saveData(); renderPurchasing(d); };
+  wrap.querySelector("#addFin").onclick=()=>{ p.finance.push({name:"",amount:"",rate:"",dateLoaned:"",paybackDate:"",address:""}); saveData(); renderPurchasing(d); };
   wrap.querySelectorAll("[data-chk]").forEach(r=>r.onclick=()=>{ p.checklist[r.dataset.chk]=!p.checklist[r.dataset.chk]; saveData(); renderPurchasing(d); });
   if(wrap.querySelector("#toRefurbish")) wrap.querySelector("#toRefurbish").onclick=()=>{ d.phase="refurbishing"; tab="refurbishing"; saveData(); renderProperty(); };
 }
