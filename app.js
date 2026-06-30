@@ -1106,6 +1106,7 @@ function renderManage(d){
 function renderSettings(){
   const a=DATA.assumptions;
   const f=(key,label,suffix)=>`<div class="field inline"><label>${label}</label><div class="prefix" style="width:130px">${suffix==='£'?'<span>£</span>':''}<input inputmode="decimal" data-a="${key}" value="${esc(a[key])}" style="${suffix==='£'?'padding-left:24px':''}">${suffix==='%'?'<span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-weight:700">%</span>':''}</div></div>`;
+  const ft=(key,label)=>`<div class="field"><label>${label}</label><input data-at="${key}" value="${esc(a[key])}"></div>`;
   app.innerHTML=`
     <button class="back" id="back">← All deals</button>
     <div class="page-head"><div><span class="eyebrow">Defaults</span><br><h1 class="page">Settings</h1><div class="ul" style="width:54px"></div></div></div>
@@ -1126,10 +1127,20 @@ function renderSettings(){
       <h3>Stamp duty</h3>
       <p class="hint" style="margin:0">Calculated automatically using <b>limited-company (SPV) additional-property rates</b>: 5% on the first £125k, rising in bands, with a flat 17% over £500k. Most St&nbsp;Helens deals sit at a simple 5% of the price.</p>
     </div>
+    <div class="panel">
+      <h3>Borrower &amp; Guarantor details</h3>
+      <p class="hint">Used when generating a loan agreement from a Finance raised entry. These don't change often.</p>
+      ${ft('companyName','Company name')}
+      ${ft('companyAddress','Company / Guarantor address')}
+      ${ft('directorNames','Director / Guarantor names')}
+    </div>
     <button class="btn ghost" id="reset">Reset to defaults</button>`;
   app.querySelector("#back").onclick=()=>go("list");
   app.querySelectorAll("[data-a]").forEach(inp=>{
     inp.addEventListener("input",()=>{ a[inp.dataset.a]=num(inp.value); saveData(); });
+  });
+  app.querySelectorAll("[data-at]").forEach(inp=>{
+    inp.addEventListener("input",()=>{ a[inp.dataset.at]=inp.value; saveData(); });
   });
   app.querySelector("#reset").onclick=()=>{ DATA.assumptions={...DEFAULT_ASSUMPTIONS}; saveData(); renderSettings(); };
 }
