@@ -129,7 +129,7 @@ function ensureRefurbish(d){
 
 /* ---------- state ---------- */
 let DATA = { deals:[], contacts:[], assumptions:{...DEFAULT_ASSUMPTIONS} };
-let view = "list", currentId = null, tab = "deal", homeMode = "list", section = "owned", analysisSub = "numbers", sectionTab = "items";
+let view = "list", currentId = null, tab = "deal", homeMode = "list", section = "owned", analysisSub = "numbers", sectionTab = "items", currentFinanceIndex = null;
 let memoryOnly = false;
 const hasStore = (typeof window !== "undefined" && window.storage && typeof window.storage.get === "function");
 
@@ -1185,6 +1185,7 @@ function render(){
   else if(view==="property") renderProperty();
   else if(view==="settings") renderSettings();
   else if(view==="summary") renderSummary(curDeal());
+  else if(view==="agreement") renderLoanAgreement(curDeal(), currentFinanceIndex);
 }
 document.getElementById("navSettings").onclick=()=>go("settings");
 document.getElementById("logo").onclick=()=>go("list");
