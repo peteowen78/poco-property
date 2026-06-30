@@ -846,8 +846,10 @@ function renderPurchasing(d){
   const done=PURCHASE_CHECKLIST.filter(([k])=>p.checklist[k]).length;
   const pct=Math.round(done/PURCHASE_CHECKLIST.length*100);
   const chkRows=PURCHASE_CHECKLIST.map(([k,label])=>`<div class="chk-row ${p.checklist[k]?'on':''}" data-chk="${k}"><div class="check">${p.checklist[k]?'✓':''}</div><div class="lbl">${label}</div></div>`).join("");
+  const financeCanGenerate=x=>x.name && x.address && num(x.amount)>0 && num(x.rate)>0 && x.dateLoaned && x.paybackDate;
   const financeRows=p.finance.map((x,i)=>{
     const interest=loanInterest(x.amount,x.rate,x.dateLoaned,x.paybackDate);
+    const canGenerate=financeCanGenerate(x);
     return `<div class="frow">
       <input data-ff="name" data-i="${i}" value="${esc(x.name||"")}" placeholder="Name">
       <div class="prefix"><span>£</span><input data-ff="amount" data-i="${i}" inputmode="decimal" value="${esc(x.amount||"")}" placeholder="Amount" style="padding-left:22px"></div>
@@ -856,6 +858,10 @@ function renderPurchasing(d){
       <input type="date" data-ff="paybackDate" data-i="${i}" value="${esc(x.paybackDate||"")}">
       <span class="interest">${interest==null?"—":money(interest)}</span>
       <button class="comp-del" data-fdel="${i}" title="Remove">✕</button>
+    </div>
+    <div class="frow-addr">
+      <input data-ff="address" data-i="${i}" value="${esc(x.address||"")}" placeholder="Lender's address">
+      <button class="btn ghost sm" data-fgen="${i}" ${canGenerate?"":'disabled title="Fill in name, address, amount, rate, and both dates first"'}>Generate agreement</button>
     </div>`;
   }).join("");
   const financeTotal=p.finance.reduce((a,x)=>a+num(x.amount),0);
@@ -907,12 +913,19 @@ function renderPurchasing(d){
     const total=p.finance.reduce((a,y)=>a+num(y.amount),0);
     const ft=wrap.querySelector("#finTot"); if(ft) ft.textContent=money(total);
     const ftw=wrap.querySelector("#finTotWrap"); if(ftw) ftw.style.display=total?"":"none";
+    const genBtn=wrap.querySelector(`[data-fgen="${i}"]`);
+    if(genBtn){
+      const canGenerate=financeCanGenerate(x);
+      genBtn.disabled=!canGenerate;
+      genBtn.title=canGenerate?"":"Fill in name, address, amount, rate, and both dates first";
+    }
   };
   wrap.querySelectorAll("[data-ff]").forEach(inp=>{
     const i=+inp.dataset.i, f=inp.dataset.ff, ev=inp.type==="date"?"change":"input";
     inp.addEventListener(ev,()=>{ p.finance[i][f]=inp.value; saveData(); updateFinRow(i); });
   });
   wrap.querySelectorAll("[data-fdel]").forEach(b=>b.onclick=()=>{ p.finance.splice(+b.dataset.fdel,1); saveData(); renderPurchasing(d); });
+  wrap.querySelectorAll("[data-fgen]").forEach(b=>{ b.onclick=()=>{ if(b.disabled) return; currentFinanceIndex=+b.dataset.fgen; go("agreement", d.id); }; });
   wrap.querySelector("#addFin").onclick=()=>{ p.finance.push({name:"",amount:"",rate:"",dateLoaned:"",paybackDate:"",address:""}); saveData(); renderPurchasing(d); };
   wrap.querySelectorAll("[data-chk]").forEach(r=>r.onclick=()=>{ p.checklist[r.dataset.chk]=!p.checklist[r.dataset.chk]; saveData(); renderPurchasing(d); });
   if(wrap.querySelector("#toRefurbish")) wrap.querySelector("#toRefurbish").onclick=()=>{ d.phase="refurbishing"; tab="refurbishing"; saveData(); renderProperty(); };
