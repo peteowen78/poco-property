@@ -106,6 +106,7 @@ const MORTGAGE_STATES=["Not started","Applied","Valuation booked","Offer receive
 function ensurePhase(d){
   if(!d.phase) d.phase = d.stage==="Completed" ? "owned" : d.stage==="Agreed" ? "purchasing" : "analysis";
   if(!ANALYSIS_STAGES.includes(d.stage)) d.stage = (d.stage==="Completed"||d.stage==="Agreed") ? "Offer made" : "Lead";
+  if(!Array.isArray(d.photos)) d.photos=[];
 }
 function ensurePurchase(d){
   if(!d.purchase) d.purchase={};
@@ -185,6 +186,7 @@ function fbInit(){
   try{ firebase.initializeApp(firebaseConfig); }catch(e){}
   fbAuth=firebase.auth();
   fbDocRef=firebase.firestore().collection("workspace").doc("shared");
+  window.fbStorage=firebase.storage();
   fbAuth.onAuthStateChanged(async user=>{
     if(!user){ showLogin(); return; }
     const email=(user.email||"").toLowerCase();
@@ -234,7 +236,7 @@ function setIdentity(email){
 /* ---------- model helpers ---------- */
 function uid(){ return "d"+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
 function newDeal(addr,pc){
-  return { id:uid(), address:addr||"New property", postcode:pc||"", beds:"", price:"", source:"", stage:"Lead", phase:"analysis", notes:"",
+  return { id:uid(), address:addr||"New property", postcode:pc||"", beds:"", price:"", source:"", stage:"Lead", phase:"analysis", notes:"", photos:[],
            refurb:{ included:{}, qty:{}, rates:{}, contingencyPct:15, pmFee:1000 },
            deal:{ duv:"", rent:"", yourOffer:"", hmoCosts:"", refurbOverride:"", comparables:[] },
            purchase:{ agreedPrice:"", solicitor:"", solicitorRef:"", finance:[], targetExchange:"", targetCompletion:"", checklist:{instructed:false,searches:false,enquiries:false,offer:false,exchanged:false,completed:false} },
@@ -558,7 +560,7 @@ function wireBoard(){
 function renderProperty(){
   const d=curDeal(); if(!d){ go("list"); return; }
   ensurePhase(d);
-  const PHASE_TABS=PHASES.map(p=>p[0]);
+  const PHASE_TABS=[...PHASES.map(p=>p[0]),"photos"];
   if(!PHASE_TABS.includes(tab)) tab=d.phase||"analysis";
   app.innerHTML = `
     <button class="back" id="back">← Pipeline</button>
@@ -582,6 +584,7 @@ function renderProperty(){
     </div>
     <div class="tabs">
       ${PHASES.map(([k,label])=>`<button class="tab ${tab===k?'active':''}" data-tab="${k}">${label}</button>`).join("")}
+      <button class="tab ${tab==='photos'?'active':''}" data-tab="photos">Photos${d.photos&&d.photos.length?` (${d.photos.length})`:""}</button>
     </div>
     <div id="tabwrap"></div>`;
   app.querySelector("#back").onclick=()=>go("list");
@@ -597,6 +600,7 @@ function renderProperty(){
   if(tab==="purchasing") renderPurchasing(d);
   else if(tab==="refurbishing") renderRefurbishing(d);
   else if(tab==="owned") renderManage(d);
+  else if(tab==="photos") renderPhotos(d);
   else { analysisSub==="estimate" ? renderRefurb(d) : renderDeal(d); }
 }
 
@@ -1100,6 +1104,78 @@ function renderManage(d){
   });
   wrap.querySelectorAll("[data-mdel]").forEach(b=>b.onclick=()=>{ m.maintenance.splice(+b.dataset.mdel,1); saveData(); renderManage(d); });
   wrap.querySelector("#addM").onclick=()=>{ m.maintenance.push({date:"",desc:"",status:"Open",cost:""}); saveData(); renderManage(d); };
+}
+
+/* ============================================================ PHOTOS */
+function renderPhotos(d){
+  const wrap=document.getElementById("tabwrap");
+  const canUpload=!!(window.fbStorage);
+  function paint(){
+    wrap.innerHTML=`
+      <div class="panel">
+        <h3>Viewing photos</h3>
+        <p class="hint">Add photos from your viewing — they sync across devices. Tap a photo to view full size.</p>
+        ${canUpload
+          ? `<label class="btn" style="cursor:pointer;display:inline-block;margin-bottom:16px">
+               + Add photos
+               <input type="file" id="photoUpload" accept="image/*" multiple style="display:none">
+             </label>`
+          : `<p class="hint" style="color:var(--bad)">Photo upload requires Firebase — running in demo mode.</p>`}
+        <div id="uploadStatus" style="margin-bottom:12px;font-size:14px;color:var(--muted)"></div>
+        ${d.photos.length
+          ? `<div class="photo-grid">${d.photos.map((p,i)=>`
+              <div class="photo-thumb" data-i="${i}">
+                <img src="${esc(p.url)}" alt="${esc(p.name||'')}">
+                <button class="photo-del" data-i="${i}" title="Delete photo">✕</button>
+              </div>`).join("")}</div>`
+          : `<p class="hint" style="margin-top:8px">No photos yet.</p>`}
+      </div>`;
+
+    if(canUpload){
+      wrap.querySelector("#photoUpload").onchange=async e=>{
+        const files=[...e.target.files]; if(!files.length) return;
+        const status=wrap.querySelector("#uploadStatus");
+        status.textContent=`Uploading ${files.length} photo${files.length>1?"s":""}…`;
+        let done=0;
+        for(const file of files){
+          try{
+            const path=`deals/${d.id}/${Date.now()}_${file.name}`;
+            const ref=window.fbStorage.ref(path);
+            await ref.put(file);
+            const url=await ref.getDownloadURL();
+            d.photos.push({url, name:file.name, path});
+            saveData();
+            done++;
+            status.textContent=`Uploaded ${done} of ${files.length}…`;
+          }catch(err){
+            console.error("Upload failed",err);
+            status.textContent=`Upload failed: ${err.message}`;
+          }
+        }
+        status.textContent="";
+        renderPhotos(d);
+      };
+    }
+
+    wrap.querySelectorAll(".photo-thumb img").forEach(img=>{
+      img.onclick=()=>window.open(img.src,"_blank");
+    });
+    wrap.querySelectorAll(".photo-del").forEach(btn=>{
+      btn.onclick=async e=>{
+        e.stopPropagation();
+        if(!confirm("Delete this photo?")) return;
+        const i=+btn.dataset.i;
+        const photo=d.photos[i];
+        if(window.fbStorage && photo.path){
+          try{ await window.fbStorage.ref(photo.path).delete(); }catch(err){ console.warn("Storage delete failed",err); }
+        }
+        d.photos.splice(i,1);
+        saveData();
+        renderPhotos(d);
+      };
+    });
+  }
+  paint();
 }
 
 /* ============================================================ SETTINGS */

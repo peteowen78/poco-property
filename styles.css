@@ -280,6 +280,13 @@
   .authcard img{height:32px;margin-bottom:6px}
   .authcard h2{font-style:italic;font-weight:900;font-size:22px;letter-spacing:-.02em;margin:14px 0 4px}
   .authcard p{color:var(--muted);font-size:14px;margin:0 0 22px}
+  /* ---------- photos ---------- */
+  .photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:4px}
+  .photo-thumb{position:relative;border-radius:10px;overflow:hidden;aspect-ratio:4/3;background:var(--surface2);cursor:pointer}
+  .photo-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .photo-del{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:50%;width:24px;height:24px;font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;line-height:1}
+  .photo-del:hover{background:var(--bad)}
+
   .gbtn{display:inline-flex;align-items:center;gap:10px;border:1px solid var(--ink);background:var(--ink);color:#fff;border-radius:12px;padding:13px 22px;font-weight:800;font-style:italic;font-size:15px;cursor:pointer}
   .gbtn:hover{background:var(--yellow);color:var(--ink);border-color:var(--yellow)}
   .autherr{color:var(--bad);font-size:13px;margin-top:14px;font-weight:700}
