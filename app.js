@@ -1136,23 +1136,23 @@ function renderPhotos(d){
         const files=[...e.target.files]; if(!files.length) return;
         const status=wrap.querySelector("#uploadStatus");
         status.textContent=`Uploading ${files.length} photo${files.length>1?"s":""}…`;
-        let done=0;
+        let done=0, failed=0;
         for(const file of files){
           try{
             const path=`deals/${d.id}/${Date.now()}_${file.name}`;
             const ref=window.fbStorage.ref(path);
             await ref.put(file);
             const url=await ref.getDownloadURL();
-            d.photos.push({url, name:file.name, path});
-            saveData();
+            d.photos.push({url, name:file.name, path});   // accumulate — save once after the loop
             done++;
             status.textContent=`Uploaded ${done} of ${files.length}…`;
           }catch(err){
             console.error("Upload failed",err);
-            status.textContent=`Upload failed: ${err.message}`;
+            failed++;
           }
         }
-        status.textContent="";
+        if(done) saveData();                               // single write → no sync-echo reverts
+        status.textContent = failed ? `${failed} photo${failed>1?"s":""} failed to upload.` : "";
         renderPhotos(d);
       };
     }
